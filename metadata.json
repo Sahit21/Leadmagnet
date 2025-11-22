@@ -1,0 +1,7 @@
+{
+  "name": "Software Service Agentur Hit",
+  "description": "Erstellen Sie sofort eine benutzerdefinierte KI-Telefonassistenz aus Ihrem Webseiteninhalt.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
