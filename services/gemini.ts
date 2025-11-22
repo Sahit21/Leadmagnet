@@ -2,7 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { AgentProfile, UserData } from "../types";
 
 // Initialize Gemini Client
-const apiKey = process.env.API_KEY || '';
+const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY || 'AIzaSyAGUGb_pi8PKG7nR49HpQOV3fpqHaW5voE';
 const ai = new GoogleGenAI({ apiKey });
 
 /**
