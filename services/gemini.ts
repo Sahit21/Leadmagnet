@@ -2,14 +2,16 @@ import { GoogleGenAI } from "@google/genai";
 import { AgentProfile, UserData } from "../types";
 
 // Initialize Gemini Client
-const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY || 'AIzaSyAGUGb_pi8PKG7nR49HpQOV3fpqHaW5voE';
+const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
 
 /**
  * Analyzes the website using the googleSearch tool to create an agent profile.
  */
 export const analyzeWebsiteForAgent = async (userData: UserData): Promise<AgentProfile> => {
-  if (!apiKey) throw new Error("API Key is missing");
+  if (!apiKey) {
+    throw new Error("API-Key fehlt. Bitte setzen Sie GEMINI_API_KEY in den Umgebungsvariablen.");
+  }
 
   // Enhanced template with a specific Knowledge Base section
   const template = `
@@ -100,13 +102,25 @@ Ihr Ziel ist es, dem Anrufer bei seiner Anfrage zu helfen – z. B. [DIENSTLEI
   `;
 
   // NOTE: responseMimeType: "application/json" cannot be used with tools: [{ googleSearch: {} }]
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt,
-    config: {
-      tools: [{ googleSearch: {} }],
+  let response;
+  try {
+    response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        tools: [{ googleSearch: {} }],
+      }
+    });
+  } catch (error: any) {
+    // Handle API key errors specifically
+    if (error?.error?.code === 403 || error?.error?.status === 'PERMISSION_DENIED') {
+      throw new Error("Der API-Key ist ungültig oder wurde als geleakt gemeldet. Bitte setzen Sie einen neuen GEMINI_API_KEY in den Umgebungsvariablen.");
     }
-  });
+    if (error?.error?.code === 401) {
+      throw new Error("API-Key fehlt oder ist ungültig. Bitte setzen Sie GEMINI_API_KEY in den Umgebungsvariablen.");
+    }
+    throw new Error(`Gemini API Fehler: ${error?.error?.message || error?.message || "Unbekannter Fehler"}`);
+  }
 
   let text = response.text || "{}";
   
